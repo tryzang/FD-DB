@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Runtime outputs
+runs/
+checkpoint/
+plots/
+images/
+artifacts/
+
+# Weights / checkpoints
+*.pt
+*.pth
+*.ckpt
+*.onnx
+
+# Data (local only)
+data/
+data/*
+
+# Evaluation outputs
+evaluation/results/runs/
+evaluation/yolo/data/
+evaluation/yolo/runs/
+
+# Optional local experiment dirs
+convert/free_convert/
+convert/adaptive_fusion_convert/
+
+# Logs
+*.log

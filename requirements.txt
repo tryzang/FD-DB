@@ -1,0 +1,19 @@
+torch==2.3.1
+torchvision==0.18.1
+pyyaml>=6.0
+pytest>=8.0
+matplotlib>=3.8
+scipy>=1.12
+tensorboard>=2.16
+Pillow>=10.0
+numpy>=1.26
+
+# BOP toolkit (required by dataloader.bop.adapter), pinned for reproducibility
+git+https://github.com/thodan/bop_toolkit.git@a9c7ae92a97a9f57e684ea2a995b8c61da3b16c1
+
+# Optional evaluation/perf dependencies
+torch-fidelity==0.3.0
+clean-fid==0.1.35
+pycocotools>=2.0.7
+fvcore>=0.1.5
+ptflops>=0.7.2

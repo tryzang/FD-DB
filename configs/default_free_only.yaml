@@ -1,0 +1,214 @@
+data:
+  image_size: 180
+  batch_size: 8
+  num_workers: 4
+  bop:
+    datasets_root: /path/to/bop/datasets
+    dataset_name: ycbv
+    syn_dir: ycbv_train_pbr
+    real_source:
+      mode: split_from_test
+      test_dir: ycbv_test_all
+      holdout:
+        val_ratio: 0.1
+        seed: 42
+    val:
+      ratio: 0.1
+      seed: 42
+    cache:
+      enable: true
+      dir_name: "__cache__"
+      index_file: "index.json"
+      split_file: "split.json"
+      scene_cache_max: 64
+    loader:
+      shuffle: true
+      num_workers: 4
+generator:
+  in_channels: 3
+  base_channels: 64
+  num_blocks: 9
+  use_tanh: true
+  checkpoint: true
+  param_edit:
+    enable: false
+    param_net:
+      base_channels: 32
+      num_layers: 3
+      mlp_hidden: 128
+    ops:
+      wb:
+        enable: true
+      exposure:
+        enable: true
+      contrast:
+        enable: true
+      saturation:
+        enable: true
+        luma_weights: [0.299, 0.587, 0.114]
+      blur:
+        enable: true
+        sigma_eps: 0.001
+      grain:
+        enable: true
+        rgb: true
+        size: 1.0
+    param_spec:
+      wb_gain:
+        min: 0.7
+        max: 1.4
+        identity: 1.0
+        map: log_tanh
+      exposure:
+        min: -0.5
+        max: 0.5
+        identity: -0.2
+        map: tanh
+      contrast:
+        min: 0.6
+        max: 1.6
+        identity: 1.0
+        map: sigmoid
+      saturation:
+        min: 0.6
+        max: 1.6
+        identity: 0.6
+        map: sigmoid
+      blur_sigma:
+        min: 0.0
+        max: 3.0
+        identity: 0.2
+        map: sigmoid
+      grain_amp:
+        min: 0.0
+        max: 2.0
+        identity: 0.4
+        map: sigmoid
+      grain_size:
+        min: 0.0
+        max: 1.0
+        identity: 0.1
+        map: sigmoid
+  fusion:
+    g_res:
+      default: 0.9
+    sigma_fuse: 0.0
+frequency:
+  ref_size: 256
+  use_scale: true
+  sigma_base: 0.8
+  sigma: 2.0
+  padding: reflect
+discriminator:
+  in_channels: 3
+  base_channels: 64
+  num_layers: 3
+  affine: true
+  affine_free: false
+training:
+  start_phase: free
+  device: cuda
+  epochs: 4
+  log_every: 10
+  max_steps: 20000
+  checkpoint:
+    enabled: true
+    dir: runs/checkpoint/free_only
+    save_every_steps: 50
+  amp:
+    enabled: false
+    dtype: float16
+  optimizer:
+    lr_g: 0.0002
+    lr_d: 0.00005
+    d_step_interval: 6
+    betas: [0.3, 0.999]
+    free:
+      lr_d: 0.0002
+      d_step_interval: 1
+      betas: [0.5, 0.999]
+  loss:
+    gan_mode: hinge
+    lambda_gan: 1.0
+    lambda_nce: 1.0
+    lambda_identity: 10.0
+    lambda_edit_reg: 1.0
+    lowfreq_anchor:
+      enable: true
+      sigmas: [2.0, 4.0, 8.0]
+      weights: [1.0, 1.0, 1.0]
+      lambda_base: 1.5
+      alpha: 1.0
+      use_gate_coupling: false
+    patch_sampler:
+      enabled: true
+      num_patches: 256
+    patchnce:
+      temperature: 0.05
+      layers: [0, 1, 2, 3, 4]
+      mlp_dim: 256
+      detach_key: true
+      identity: true
+    edit_reg:
+      enable: true
+      weights:
+        param: 0.6
+        blur: 1.0
+        grain: 0.1
+phase_schedule:
+  enable: false
+  criteria:
+    window: 1000
+    min_window: 1000
+    min_steps: 500
+    patience: 5
+    check_every: 5
+    min_coverage: 0.80
+    rel_tol: 0.3
+    abs_tol: 0.2
+    loss_rel_tol: 0.1
+    loss_abs_tol: 0.1
+  edit_phase:
+    g_res: 0.0
+    op_all: 1.0
+    lambdas:
+      gan: 1.0
+      nce: 0.0
+      identity: 0.0
+      edit_reg: 1.0
+      lowfreq_anchor: 0.5
+  free_phase:
+    g_res: 1.0
+    op_all: 1.0
+    freeze_edit: true
+    gan_mode: lsgan
+    use_edit_as_source: true
+    lambdas:
+      gan: 1.0
+      nce: 1.0
+      identity: 1.0
+      edit_reg: 0.0
+      lowfreq_anchor: 1.5
+tb_logger:
+  enabled: true
+  log_dir: runs/tensorboard
+  run_name: free_only
+  purge_step: 0
+  level: MIN
+  log_hparams: false
+  log_meta: false
+  scalars_every_steps: 50
+  images_every_steps: 50
+  debug_every_steps: 50
+  flush_every_steps: 50
+  image_max_side: 512
+  num_fixed_samples: 4
+  seed: 42
+  log_losses: true
+  log_images_panel: true
+  log_edit_images: true
+  log_edit_panel: true
+  log_schedule: true
+  log_d_hist: true
+  log_theta_stats: true
+  log_theta_hist: true
